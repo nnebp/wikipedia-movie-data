@@ -4,7 +4,7 @@ var cheerio = require('cheerio');
 var async = require('async');
 
 var years = [];
-for (var year = 1900; year < 2017; year++)
+for (var year = 1980; year < 2017; year++)
   years.push(year);
 
 async.mapSeries(years, scrapeMoviesForYear, function(err, results) {
@@ -61,7 +61,8 @@ function scrapeMoviesForYear(year, callback) {
           var cast_cell = director_cell.next();
           var genre_cell = cast_cell.next();
           var notes_cell = genre_cell.next();
-          
+
+          /*
           var movie_data = {
             title: title_cell.text(),
             year: year,
@@ -70,10 +71,35 @@ function scrapeMoviesForYear(year, callback) {
             genre: toCommaDelimitedList(genre_cell),
             notes: toCommaDelimitedList(notes_cell)
           };
-          movies.push(movie_data);
+          */
+          //Ben: quick and dirty way to isolate cast data
 
-          var m = movie_data;
-          console.log(m.title + ':', m.director, m.cast, m.genre, m.notes);
+          var actorArray = toArray(cast_cell);
+
+          if (actorArray != null) {
+            actorArray.forEach((element) => {
+
+              var movie_data = {
+                title: title_cell.text(),
+                year: year,
+                actor: element.trim()
+              };
+
+              movies.push(movie_data);
+              console.log(movie_data);
+            });
+        }
+/*
+          var movie_data = {
+            title: title_cell.text(),
+            toCommaDelimitedList(cast_cell)
+          };
+
+          movies.push(movie_data);
+*/
+          //var m = movie_data;
+          //console.log(m.title + ':', m.director, m.cast, m.genre, m.notes);
+          //console.log(movie_data);
         });
       });
 
@@ -82,10 +108,15 @@ function scrapeMoviesForYear(year, callback) {
   }, 1000);
 }
 
-function toCommaDelimitedList(cell) {
+//Ben: this is a gross edit to return an array of actors
+function toArray(cell) {
   var text = cell.text().trim();
-  if (text)
-    return text.split('\n').join(', ');
+  if (text) {
+    //return text.split('\n').join(', ');
+    midString = text.split('\n').join(', ');
+    return midString.split(',');
+
+  }
   else
     return null;
 }
